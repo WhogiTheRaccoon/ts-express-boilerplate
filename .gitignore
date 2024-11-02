@@ -1,0 +1,19 @@
+# Logs
+logs
+*.log
+
+node_modules
+dist
+*.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+
+*.tsbuildinfo
+
+# Customs
+.env
+.env.local
+.env.development
+src/db/migrations
