@@ -7,10 +7,10 @@
         - del(key: string): Promise<void>
         - flush(): Promise<void>
     Usage:
-    - Use set method to set a key value pair in cache
-    - Use get method to get a value from cache
-    - Use del method to delete a key from cache
-    - Use flush method to clear all cache
+        - Use set method to set a key value pair in cache
+        - Use get method to get a value from cache
+        - Use del method to delete a key from cache
+        - Use flush method to clear all cache
 */
 import { createClient } from 'redis';
 import dotenv from 'dotenv';

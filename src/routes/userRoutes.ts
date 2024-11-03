@@ -1,5 +1,5 @@
 import express from 'express';
-import userController from '@/controllers/userController';
+import  * as userController  from '@/controllers/userController';
 import { requireRole } from '@/middlewares/requireRole';
 
 const router = express.Router();

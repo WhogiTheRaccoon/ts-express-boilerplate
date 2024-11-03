@@ -5,7 +5,7 @@
         - logger.<TYPE>(message: string): void
             - Types: error, warn, info, verbose, debug, silly
     Usage:
-    - Use logger.<TYPE>(message) to log an info message
+        - Use logger.<TYPE>(message) to log an info message
 */
 import winston from 'winston';
 import dotenv from 'dotenv';

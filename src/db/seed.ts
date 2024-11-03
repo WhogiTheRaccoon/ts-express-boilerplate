@@ -12,11 +12,11 @@ if(!NUM_USERS) {
     process.exit(1);
 }
 
-// Seed users table with random data
+// Seed users table with random data we use int to avoid duplicate fields as username and email are unique
 export function createRandomUser(): User {
     return { // id is auto-incremented
-      username: faker.internet.userName(),
-      email: faker.internet.email(),
+      username: `${faker.number.int}-${faker.internet.userName()}`,
+      email: `${faker.number.int}${faker.internet.email()}`,
       password: faker.internet.password(),
       createdAt: faker.date.past(),
       updatedAt: faker.date.recent(),

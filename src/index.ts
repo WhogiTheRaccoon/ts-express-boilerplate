@@ -44,8 +44,8 @@ require('./routes')(app);
 
 // Error Handler
 app.use((err: Error, req: any, res: any, next: any) => {
-  logger.error(err.stack);
-  res.status(500).send('Something went wrong!');
+  logger.error(err);
+  res.status(500).send(err);
 });
 
 // Server

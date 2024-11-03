@@ -5,9 +5,9 @@
         - sendEmail(to: string, template: file, locals?: object): Promise<void>
         - processEmailJob(jobData: any): Promise<void>
     Usage:
-    - Use sendEmail method to send an email. It will add the email job to the emailQueue
-    - The emailQueue will process the email job and send the email using nodemailer
-    - If the email fails to send, it will log an error. If the email is sent successfully, it will log a success message
+        - Use sendEmail method to send an email. It will add the email job to the emailQueue
+        - The emailQueue will process the email job and send the email using nodemailer
+        - If the email fails to send, it will log an error. If the email is sent successfully, it will log a success message
 */
 import nodemailer from 'nodemailer';
 import Email from 'email-templates';

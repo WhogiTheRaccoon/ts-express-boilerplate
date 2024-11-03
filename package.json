@@ -8,7 +8,7 @@
     "build": "tsc",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "ts-node src/db/seed.ts"
+    "db:seed": "ts-node -r tsconfig-paths/register src/db/seed.ts"
   },
   "keywords": [],
   "author": "",

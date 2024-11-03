@@ -7,10 +7,10 @@
         - clearQueue(queueName: string): Promise<void>
         - createWorker(queueName: string): void
     Usage:
-    - Use getQueue method to get the queue by name
-    - Use addJob method to add a job to the queue
-    - Use createWorker method to create a worker for the queue
-    - Use clearQueue method to clear the queue
+        - Use getQueue method to get the queue by name
+        - Use addJob method to add a job to the queue
+        - Use createWorker method to create a worker for the queue
+        - Use clearQueue method to clear the queue
 */
 import { Queue, Worker, QueueOptions, Job } from 'bullmq';
 import logger from '@/services/loggerService';

@@ -1,25 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
-import userSchema from '@/policies/userSchema'; // Import the userSchema for validating the request body
-import { db, eq, or } from '@/db/setup';
-import { users } from '@/db/schema';
 import passport = require('passport');
 import bcrypt from 'bcrypt';
-import logger from '@/services/loggerService';
-import { emailService } from '@/services/emailService';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import * as userSchema from '@/policies/userSchema'; // Import the userSchema for validating the request body
+import { db, eq, or } from '@/db/setup';
+import { users } from '@/db/schema';
+import logger from '@/services/loggerService';
+import { emailService } from '@/services/emailService';
+import { validate } from '@/utils/validation';
 dotenv.config();
 
-
-const login = async (req: Request, res: Response, next: NextFunction) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
     const { username, password } = req.body;
-    const { error } = userSchema.loginUser.validate({ username, password });
+    if (!validate(userSchema.loginUser, { username, password }, res)) return;
 
-    if(error) {
-        res.status(400).json({ error: error.details[0].message });
-        return;
-    }
-
+    // Local authentication using PassportJS
     passport.authenticate('local', (err: string, user: any, info: any) => {
         if (err) { return next(err); }
         if (!user) { return res.status(400).json({ message: info.message }); }
@@ -34,14 +30,9 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     })(req, res, next);
 };
 
-const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
     const { username, email, password } = req.body;
-    const { error } = userSchema.createUser.validate({ username, email, password });
-
-    if(error) {
-        res.status(400).json({ error: error.details[0].message });
-        return;
-    }
+    if (!validate(userSchema.createUser, { username, email, password }, res)) return;
 
     // Check if user already exists
     const existingUser = await db.select().from(users).where(
@@ -73,9 +64,11 @@ const register = async (req: Request, res: Response) => {
     logger.info(`Email verification sent to ${email}`);
 };
 
-const verifyEmail = async (req: Request, res: Response) => {
+// Verification callback from email.
+export const verifyEmail = async (req: Request, res: Response) => {
     const { token }: any = req.query;
     const secret: string = String(process.env.JWT_SECRET);
+    if (!validate(userSchema.verifyEmail, { token }, res)) return;
 
     try {
         const decoded: any = jwt.verify(token, secret);
@@ -90,7 +83,8 @@ const verifyEmail = async (req: Request, res: Response) => {
     }
 };
 
-const forgotPassword = async (req: Request, res: Response) => {
+// Initiates reset password by sending a tokenized link to the user
+export const forgotPassword = async (req: Request, res: Response) => {
     const email = (req.user as any)[0]?.email ?? null; // I mean, this is a bit weird
 
     if(!email) {
@@ -113,9 +107,11 @@ const forgotPassword = async (req: Request, res: Response) => {
     res.json({ message: 'Password reset email sent' });
 }
 
-const resetPassword = async (req: Request, res: Response) => {
+// Finally reset the user password to the desired one.
+export const resetPassword = async (req: Request, res: Response) => {
     const { token, password } = req.body;
     const secret: string = String(process.env.JWT_SECRET);
+    if (!validate(userSchema.resetPassword, { token, password }, res)) return;
 
     try {
         const decoded: any = jwt.verify(token, secret);
@@ -140,13 +136,14 @@ const resetPassword = async (req: Request, res: Response) => {
     }
 }
 
-const me = (req: Request, res: Response) => {
+// Returns currently logged in user array
+export const me = (req: Request, res: Response) => {
     const me = (req.user as any)[0];
     delete me.password;
     res.json(me);
 }
 
-const logout = (req: Request, res: Response) => {
+export const logout = (req: Request, res: Response) => {
     req.logout((err => {
         if(err) {
             res.status(500).json({ error: 'Failed to logout' });
@@ -155,13 +152,3 @@ const logout = (req: Request, res: Response) => {
         res.json({ message: 'Logged out successfully' });
     }))
 }
-
-export default {
-    login,
-    register,
-    logout,
-    me,
-    verifyEmail,
-    forgotPassword,
-    resetPassword
-};

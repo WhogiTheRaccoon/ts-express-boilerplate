@@ -80,9 +80,10 @@ A boilerplate project for building RESTful APIs using TypeScript and Express.js.
 │   ├── middlewares
 │   ├── policies
 │   ├── routes
+│   ├── services
 │   ├── templates
 │   ├── types
-│   ├── services
+│   ├── utils
 │   └── index.ts
 ├── .env
 ├── .gitignore
@@ -97,20 +98,18 @@ A boilerplate project for building RESTful APIs using TypeScript and Express.js.
 `Middlewares` - Custom middleware functions.<br>
 `Policies` - Joi validation schemas.<br>
 `Routes` - Routes API endpoints to the appropriate controller.<br>
+`Services` - Business logic and data manipulation, reusable components.<br>
 `Templates` - Email templates.<br>
 `Types` - Custom TypeScript types.<br>
-`Services` - Business logic and data manipulation, reusable components.
-
-
+`Utils` - Commonly used or repeated code.
 
 
 ## Scripts
 - `npm run dev`: Start the development server with Nodemon.
-- `npm run build`: Compile TypeScript to JavaScript.
+- `npm run build`: Compile typescript.
 - `npm run db:generate`: Generate database migrations.
 - `npm run db:migrate`: Run database migrations.
-- `npm run db:seed`: Seed the database.
-- `npm run redis:flush`: Flush the Redis cache.
+- `npm run db:seed`: Seed the database [users].
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any changes.
