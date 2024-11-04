@@ -75,7 +75,11 @@ export const verifyEmail = async (req: Request, res: Response) => {
         const { id } = decoded;
 
         await db.update(users).set({ email_verified: true }).where(eq(users.id, id));
+        const user: any = await db.select().from(users).where(eq(users.id, id));
+
         res.json({ message: 'Email verified successfully' });
+
+        emailService.sendEmail(user[0].email, 'emailVerified', 'Email Verified', { username: user[0].username });
         logger.info(`User with id ${id} verified email`);
     } catch (error) {
         res.status(400).json({ error: 'Invalid or expired token' });
