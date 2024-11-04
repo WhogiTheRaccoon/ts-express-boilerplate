@@ -1,11 +1,9 @@
-declare module '@/policies/userSchema' {
-    export const userSchema: any;
-}
+export type SendEmailFunction = (to: string, templateName: string, subject: string, locals: object) => Promise<void>;
+export type queueJobFunction = (queueName: string, jobName: string, jobData: any) => Promise<Job>;
 
-export interface User {
-    username: string;
-    email: string;
-    password: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
+export type emailJobData = { 
+    to: string; 
+    templateName: string; 
+    subject: string;
+    locals: object;
+};

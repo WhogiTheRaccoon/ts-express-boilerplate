@@ -30,11 +30,11 @@ class CacheService {
             password: process.env.REDIS_PASS || undefined,
         })
 
-        this.redisClient.connect().catch((err: any) => {
+        this.redisClient.connect().catch((err: string) => {
             logger.error(`Redis Connection Error: ${err}`, { service: 'cacheService' });
         });
 
-        this.redisClient.on('error', (err: any) => {
+        this.redisClient.on('error', (err: string) => {
             logger.error(`Redis Error: ${err}`, { service: 'cacheService' });
         });
     }

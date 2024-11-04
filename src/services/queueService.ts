@@ -15,6 +15,7 @@
 import { Queue, Worker, QueueOptions, Job } from 'bullmq';
 import logger from '@/services/loggerService';
 import { emailService } from '@/services/emailService'; // Import emailService
+import { queueJobFunction } from '@/types/types'; // Import types
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -44,7 +45,7 @@ class QueueService {
     }
 
     // Add Job to Queue
-    public async addJob(queueName: any, jobName: string, jobData: any): Promise<Job> {
+    public addJob: queueJobFunction = async (queueName, jobName, jobData) => {
         const queue = this.getQueue(queueName);
         const job = await queue.add(jobName, jobData);
         return job;

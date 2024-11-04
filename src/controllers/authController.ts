@@ -60,7 +60,7 @@ export const register = async (req: Request, res: Response) => {
     const token = jwt.sign({ id: createdUser[0].id }, secret, { expiresIn: '1d' });
     const verificationLink = `${process.env.APP_URL}/auth/verify-email?token=${token}`;
 
-    emailService.sendEmail(email, 'verifyEmail', { username: username, verificationLink });
+    emailService.sendEmail(email, 'verifyEmail', 'Confirm your email address', { username: username, verificationLink });
     logger.info(`Email verification sent to ${email}`);
 };
 
@@ -102,7 +102,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const token = jwt.sign({ email: email }, secret, { expiresIn: '1d' });
 
     const resetLink = `${process.env.APP_URL}/auth/reset-password?token=${token}`;
-    emailService.sendEmail(user[0].email, 'resetPassword', { resetLink });
+    emailService.sendEmail(user[0].email, 'resetPassword', 'Reset Password Request', { resetLink });
     logger.info(`Password reset email sent to ${user.email} with token ${token}`);
     res.json({ message: 'Password reset email sent' });
 }
@@ -129,7 +129,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         await db.update(users).set({ password: hashedPassword }).where(eq(users.email, email));
         res.json({ message: 'Password reset successfully' });
         logger.info(`User with Email ${email} reset password`);
-        emailService.sendEmail(user[0].email, 'passwordReset', { username: user[0].username });
+        emailService.sendEmail(user[0].email, 'passwordReset', 'Your password has been reset', { username: user[0].username });
     } catch (error) {
         res.status(400).json({ error: 'Invalid or expired token' });
         return;
