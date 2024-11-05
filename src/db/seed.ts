@@ -1,6 +1,5 @@
 import { db } from './setup';
 import { users } from './schema';
-import { User } from '@/types/types';
 import { faker } from '@faker-js/faker';
 import logger from '@/services/loggerService';
 
@@ -13,7 +12,7 @@ if(!NUM_USERS) {
 }
 
 // Seed users table with random data we use int to avoid duplicate fields as username and email are unique
-export function createRandomUser(): User {
+export function createRandomUser(): any {
     return { // id is auto-incremented
       username: `${faker.number.int}-${faker.internet.userName()}`,
       email: `${faker.number.int}${faker.internet.email()}`,
