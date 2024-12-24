@@ -4,11 +4,15 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import * as userSchema from '@/policies/userSchema'; // Import the userSchema for validating the request body
-import { db, eq, or } from '@/db/setup';
-import { users } from '@/db/schema';
+
+import { db, schema } from '@/db/setup';
+import { eq, or} from 'drizzle-orm';
+
 import logger from '@/services/loggerService';
 import { emailService } from '@/services/emailService';
 import { validate } from '@/utils/validation';
+dotenv.config();
+
 dotenv.config();
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
@@ -35,10 +39,10 @@ export const register = async (req: Request, res: Response) => {
     if (!validate(userSchema.createUser, { username, email, password }, res)) return;
 
     // Check if user already exists
-    const existingUser = await db.select().from(users).where(
+    const existingUser = await db.select().from(schema.users).where(
         or(
-            eq(users.username, username), 
-            eq(users.email, email)
+            eq(schema.users.username, username), 
+            eq(schema.users.email, email)
         ));
 
     if(existingUser.length > 0) {
@@ -51,7 +55,7 @@ export const register = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create user
-    const createdUser = await db.insert(users).values({ username, email, password: hashedPassword }).$returningId();
+    const createdUser = await db.insert(schema.users).values({ username, email, password: hashedPassword }).$returningId();
     logger.info(`User ${username} created`);
     res.json({ message: 'User created', user: { username, email } });
 
@@ -74,8 +78,8 @@ export const verifyEmail = async (req: Request, res: Response) => {
         const decoded: any = jwt.verify(token, secret);
         const { id } = decoded;
 
-        await db.update(users).set({ email_verified: true }).where(eq(users.id, id));
-        const user: any = await db.select().from(users).where(eq(users.id, id));
+        await db.update(schema.users).set({ email_verified: true }).where(eq(schema.users.id, id));
+        const user: any = await db.select().from(schema.users).where(eq(schema.users.id, id));
 
         res.json({ message: 'Email verified successfully' });
 
@@ -96,7 +100,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         return;
     }
 
-    const user: any = await db.select().from(users).where(eq(users.email, email));
+    const user: any = await db.select().from(schema.users).where(eq(schema.users.email, email));
     if(user.length <= 0) {
         res.status(400).json({ error: 'User not found' });
         return;
@@ -121,7 +125,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         const decoded: any = jwt.verify(token, secret);
         const { email } = decoded;
 
-        const user: any = await db.select().from(users).where(eq(users.email, email));
+        const user: any = await db.select().from(schema.users).where(eq(schema.users.email, email));
         if(user.length <= 0) {
             res.status(400).json({ error: 'User not found' });
             return;
@@ -130,7 +134,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        await db.update(users).set({ password: hashedPassword }).where(eq(users.email, email));
+        await db.update(schema.users).set({ password: hashedPassword }).where(eq(schema.users.email, email));
         res.json({ message: 'Password reset successfully' });
         logger.info(`User with Email ${email} reset password`);
         emailService.sendEmail(user[0].email, 'passwordReset', 'Your password has been reset', { username: user[0].username });
@@ -142,17 +146,33 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 // Returns currently logged in user array
 export const me = (req: Request, res: Response) => {
-    const me = (req.user as any)[0];
-    delete me.password;
-    res.json(me);
+    const user: any = req.user;
+
+    if(user) {
+        delete user[0].password;
+        res.json(user[0]);
+        return;
+    } else {
+        res.status(400).json({ error: 'User not found' });
+        return;
+    }
 }
 
 export const logout = (req: Request, res: Response) => {
-    req.logout((err => {
+    req.logout((err) => {
         if(err) {
             res.status(500).json({ error: 'Failed to logout' });
             return;
         }
-        res.json({ message: 'Logged out successfully' });
-    }))
+
+    req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ message: 'Failed to destroy session' });
+        }
+  
+        res.clearCookie('connect.sid');
+  
+        res.status(200).json({ message: 'Logged out successfully' });
+    });
+    });
 }

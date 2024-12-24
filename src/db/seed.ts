@@ -1,5 +1,5 @@
-import { db } from './setup';
-import { users } from './schema';
+import { db } from '@/db/setup';
+import { users } from '@/db/schema';
 import { faker } from '@faker-js/faker';
 import logger from '@/services/loggerService';
 

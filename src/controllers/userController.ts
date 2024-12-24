@@ -1,15 +1,17 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import * as userSchema from '@/policies/userSchema'; // Import the userSchema for validating the request body
-import { db, eq, or } from '@/db/setup';
-import { users } from '@/db/schema';
+
+import { db, schema } from '@/db/setup';
+import { eq, or } from 'drizzle-orm';
+
 import logger from '@/services/loggerService';
 import { fetchUserById } from '@/utils/users';
 import { validate } from '@/utils/validation';
 
 export const get = async (req: Request, res: Response) => {
     try {
-        const data = await db.select().from(users);
+        const data = await db.select().from(schema.users);
         if (data.length <= 0) {
             res.status(400).json({ status: 400, message: 'No users found' });
             return;
@@ -29,7 +31,7 @@ export const getOne = async (req: Request, res: Response) => {
     if (!validate(userSchema.getOne, { id }, res)) return;
 
     try {
-        const user = await fetchUserById(id, res);
+        const user = await fetchUserById(BigInt(id), res);
         if (user) res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ status: 500, message: `Get User ${id} failed ${error}` });
@@ -43,10 +45,10 @@ export const createUser = async (req: Request, res: Response) => {
 
     try {
          // Check if user already exists
-        const existingUser = await db.select().from(users).where(
+        const existingUser = await db.select().from(schema.users).where(
             or(
-                eq(users.username, username), 
-                eq(users.email, email)
+                eq(schema.users.username, username), 
+                eq(schema.users.email, email)
             ));
 
         if(existingUser.length > 0) {
@@ -59,7 +61,7 @@ export const createUser = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Create user
-        await db.insert(users).values({ username, email, password: hashedPassword });
+        await db.insert(schema.users).values({ username, email, password: hashedPassword });
         logger.info(`User ${username} created`);
 
         res.status(201).json({ status: 201, message: 'User created successfully', user: { username, email } });
@@ -73,11 +75,11 @@ export const updateUser = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (!validate(userSchema.updateUser, { id, ...req.body }, res)) return;
 
-    const user = await fetchUserById(id, res);
+    const user = await fetchUserById(BigInt(id), res);
     if (!user) return;
 
     try {
-        await db.update(users).set(req.body).where(eq(users.id, id));
+        await db.update(schema.users).set(req.body).where(eq(user.id, id));
         res.status(200).json({ status: 200, message: 'User updated successfully' });
     } catch (error) {
         res.status(500).json({ status: 500, message: `Error updating user ${id} ${error}` });
@@ -89,11 +91,11 @@ export const deleteUser = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (!validate(userSchema.getOne, { id }, res)) return;
 
-    const user = await fetchUserById(id, res);
+    const user = await fetchUserById(BigInt(id), res);
     if (!user) return;
 
     try {
-        await db.delete(users).where(eq(users.id, id));
+        await db.delete(schema.users).where(eq(schema.users.id, id));
         res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: `Error Deleting user ${id} ${error}` });

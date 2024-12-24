@@ -7,3 +7,20 @@ export type emailJobData = {
     subject: string;
     locals: object;
 };
+
+type CustomUser = {
+    id: number;
+    username: string;
+    email: string;
+    password: string;
+    role: string;
+    email_verified: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+declare global {
+    namespace Express {
+        interface User extends CustomUser {}
+    }
+}

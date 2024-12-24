@@ -7,7 +7,7 @@ module.exports = (app: Express) => {
     app.use('/users', userRoutes);
 
     app.get('/heartbeat', (req, res) => {
-        res.send('Service is healthy');
+        res.json({status: 200, message: `Service is healthy`});
     });
 
 }

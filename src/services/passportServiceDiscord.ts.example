@@ -1,0 +1,71 @@
+/*
+    Service: Passport Config For Discord OAuth
+    Description: Passport configuration for authentication
+*/
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { Strategy as discordStrategy } from 'passport-discord';
+import logger from '@/services/loggerService';
+import { db, schema } from '@/db/setup';
+import { eq } from 'drizzle-orm';
+
+passport.serializeUser((user: Express.User, done) => {
+    logger.info(`Serializing User: ${user.username}`);
+    done(null, user.userId);
+})
+
+passport.deserializeUser((id: string, done) => {
+    db.select().from(schema.users).where(eq(schema.users.userId as any, id)).then((user) => {
+        done(null, user[0] as any);
+    });
+});
+
+passport.use(
+  new discordStrategy({
+    clientID: process.env.DISCORD_CLIENT_ID as string,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET as string,
+    callbackURL: process.env.DISCORD_CALLBACK_URL,
+    scope: ['identify', 'email', 'guilds']
+  },
+  async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+    try {
+      const [existingUser] = await db.select().from(schema.users).where(eq(schema.users.userId as any, profile.id));
+
+      if(existingUser) {
+        const updatedUser = { ...existingUser, accessToken, refreshToken, guilds: profile.guilds, };
+        await db.update(schema.users).set(updatedUser).where(eq(schema.users.userId as any, existingUser.id));
+        logger.info(`User ${existingUser.username} updated`);
+        return done(null, updatedUser);
+      }
+
+      const newUser = {
+        userId: profile.id,
+        username: profile.username,
+        discriminator: profile.discriminator,
+        globalName: `${profile.username}#${profile.discriminator}`,
+        avatar: profile.avatar,
+        mfaEnabled: profile.mfa_enabled || false,
+        banner: profile.banner || '',
+        accentColor: profile.accent_color || '',
+        locale: profile.locale || '',
+        verified: profile.verified,
+        email: profile.email,
+        flags: profile.flags,
+        premiumType: profile.premium_type || '',
+        publicFlags: profile.public_flags,
+        avatarDecoration: profile.avatar_decoration || '',
+        accessToken,
+        refreshToken,
+        guilds: profile.guilds,
+        role: 'user'
+      };
+
+      await db.insert(schema.users).values(newUser);
+      logger.info(`User ${newUser.username} created`);
+      done(null, newUser);
+    } catch (error) {
+      logger.error(`Error processing Discord Profile: ${error}`);
+      done(error, null);
+    }
+  }
+))

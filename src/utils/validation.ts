@@ -15,7 +15,8 @@ export const validate = (schema: ObjectSchema, data: any, res: Response): boolea
     const { error } = schema.validate(data);
     if (error) {
         const messages = error.details.map((err: any) => err.message);
-        res.status(400).json({ status: 400, message: messages });
+        res.status(400).json({ status: 400, message: messages, trigger: 'validation' });
+        console.log(messages)
         return false;
     }
     return true;

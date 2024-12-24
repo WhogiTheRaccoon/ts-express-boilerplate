@@ -18,8 +18,8 @@ import logger from './loggerService';
 dotenv.config();
 
 class CacheService {
-    private redisClient: any;
-    private cacheTime: number = Number(process.env.CACHETIME) || 3600;
+    public redisClient: any;
+    public cacheTime: number = Number(process.env.CACHETIME) || 3600;
 
     constructor() {
         this.redisClient = createClient({
@@ -30,9 +30,9 @@ class CacheService {
             password: process.env.REDIS_PASS || undefined,
         })
 
-        this.redisClient.connect().catch((err: string) => {
-            logger.error(`Redis Connection Error: ${err}`, { service: 'cacheService' });
-        });
+            this.redisClient.connect().catch((err: string) => {
+                logger.error(`Redis Connection Error: ${err}`, { service: 'cacheService' });
+            });
 
         this.redisClient.on('error', (err: string) => {
             logger.error(`Redis Error: ${err}`, { service: 'cacheService' });
